@@ -1,4 +1,6 @@
 import React from 'react'
+import { api, db } from '../client'
+import history from '../history'
 
 class SignUpComponent extends React.Component {
   constructor(props) {
@@ -18,7 +20,34 @@ class SignUpComponent extends React.Component {
       this.setState({ errors: true })
       return
     }
-    console.log("Signup: ", this.state.name, this.state.userName, this.state.pass)
+    const email = this.state.userName;
+    const name = this.state.name;
+    const pass = this.state.pass;
+
+    console.log("Signup: ", email, name, pass)
+
+    // Send sign up request
+    db.signUp(email, name, pass, 'default').then(res => {
+      if (res.status === 200) {
+        // Set the token id to enable crud operations
+        api.setToken(res.data.token)
+        
+        // Set the token and userId in localstorage
+        localStorage.setItem('token', res.data.token);
+        localStorage.setItem('userId', res.data.user._id);
+
+        // Go to the home page
+        history.push('/home');
+        return;
+      }
+
+      // Show an alert when signup failed
+      alert('Sign Up Failed');
+      console.log('Sign Up Error:', res)
+    }).catch(ex => {
+      // Exception occured while processing request
+      console.log('Sign Up Error:', ex)
+    });
   }
   render() {
     return (
